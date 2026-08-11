@@ -6,10 +6,12 @@ import { fadeUpContainer, fadeUpItem } from '@/lib/animations';
 import Link from 'next/link';
 import { apiClient } from '@/lib/axios';
 
-interface ProjectSummary {
+interface ShowcaseItem {
+  id: string;
   title: string;
-  shortDesc: string;
-  links?: { live?: string, repo?: string };
+  description: string;
+  linkUrl: string;
+  type: 'Project' | 'Guide';
 }
 
 function SkeletonStackCard({ index }: { index: number }) {
@@ -41,11 +43,11 @@ function SkeletonStackCard({ index }: { index: number }) {
 }
 
 function StackCard({ 
-  project, 
+  item, 
   index, 
   progress 
 }: { 
-  project: any, 
+  item: ShowcaseItem, 
   index: number, 
   progress: MotionValue<number> 
 }) {
@@ -81,8 +83,8 @@ function StackCard({
   
   return (
     <motion.a 
-      href={project.links?.live || project.links?.repo || "#"}
-      target="_blank"
+      href={item.linkUrl}
+      target={item.linkUrl.startsWith('/') ? "_self" : "_blank"}
       style={{
         y, scale, opacity, rotateX, rotateZ,
         zIndex: 10 - index,
@@ -94,17 +96,22 @@ function StackCard({
       
       <div className="z-10 flex justify-between items-start">
         <div className="w-12 h-12 bg-muted/50 border border-border rounded-full flex items-center justify-center text-xl group-hover:scale-110 transition-transform duration-500">
-          {project.title.split(' ')[0]}
+          {item.type === 'Project' ? '🚀' : '📚'}
         </div>
-        <div className="w-10 h-10 border border-border rounded-full flex items-center justify-center -rotate-45 group-hover:rotate-0 group-hover:bg-primary group-hover:border-primary group-hover:text-primary-foreground transition-all duration-300">
-          →
+        <div className="flex flex-col items-end gap-2">
+          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground group-hover:text-primary transition-colors duration-300">
+            {item.type}
+          </span>
+          <div className="w-10 h-10 border border-border rounded-full flex items-center justify-center -rotate-45 group-hover:rotate-0 group-hover:bg-primary group-hover:border-primary group-hover:text-primary-foreground transition-all duration-300">
+            →
+          </div>
         </div>
       </div>
 
       <div className="z-10">
-        <h3 className="text-3xl font-bold mb-4 text-foreground group-hover:text-primary transition-colors duration-300">{project.title.split(' ').slice(1).join(' ')}</h3>
+        <h3 className="text-3xl font-bold mb-4 text-foreground group-hover:text-primary transition-colors duration-300">{item.title}</h3>
         <p className="text-muted-foreground group-hover:text-foreground transition-colors duration-300">
-          {project.shortDesc}
+          {item.description}
         </p>
       </div>
     </motion.a>
@@ -113,12 +120,37 @@ function StackCard({
 
 export function ShowcaseSection() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [featuredProjects, setFeaturedProjects] = useState<ProjectSummary[]>([]);
+  const [showcaseItems, setShowcaseItems] = useState<ShowcaseItem[]>([]);
 
   useEffect(() => {
-    apiClient.get('/api/projects/recent')
-      .then(res => setFeaturedProjects(res.data.content || []))
-      .catch(console.error);
+    Promise.all([
+      apiClient.get('/api/projects/recent'),
+      apiClient.get('/api/guides/recent')
+    ]).then(([projectsRes, guidesRes]) => {
+      const projects = (projectsRes.data.content || []).slice(0, 2).map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        description: p.shortDesc,
+        linkUrl: p.links?.live || p.links?.repo || '/projects',
+        type: 'Project'
+      }));
+
+      const guides = (guidesRes.data.content || []).slice(0, 2).map((g: any) => ({
+        id: g.id,
+        title: g.title,
+        description: g.summary,
+        linkUrl: '/technical-guides', // Landing page currently doesn't have individual guide pages, so link to list
+        type: 'Guide'
+      }));
+
+      // Interleave them: Project, Guide, Project, Guide
+      const combined = [];
+      for (let i = 0; i < 2; i++) {
+        if (projects[i]) combined.push(projects[i]);
+        if (guides[i]) combined.push(guides[i]);
+      }
+      setShowcaseItems(combined);
+    }).catch(console.error);
   }, []);
 
   const { scrollYProgress } = useScroll({
@@ -126,9 +158,9 @@ export function ShowcaseSection() {
     offset: ["start start", "end end"]
   });
 
-  const progress = useTransform(scrollYProgress, [0, 1], [0, Math.max(featuredProjects.length - 1, 0)]);
+  const progress = useTransform(scrollYProgress, [0, 1], [0, Math.max(showcaseItems.length - 1, 0)]);
 
-  if (featuredProjects.length === 0) {
+  if (showcaseItems.length === 0) {
     return (
       <section id="projects" className="bg-background/50 text-foreground border-t border-border/50">
         <div ref={containerRef} className="relative w-full py-24 sm:py-32 overflow-hidden">
@@ -169,7 +201,7 @@ export function ShowcaseSection() {
                 transition={{ duration: 0.8, delay: 0.3 }}
               >
                 <Link href="/projects" className="inline-block px-8 py-4 bg-foreground text-background font-medium rounded-full hover:bg-primary hover:text-primary-foreground transition-colors duration-300 shadow-lg shadow-black/5">
-                  View All Projects
+                  View All
                 </Link>
               </motion.div>
             </div>
@@ -188,7 +220,7 @@ export function ShowcaseSection() {
 
   return (
     <section id="projects" className="bg-background/50 text-foreground border-t border-border/50">
-      <div ref={containerRef} style={{ height: `${featuredProjects.length * 80}vh` }} className="relative w-full">
+      <div ref={containerRef} style={{ height: `${showcaseItems.length * 80}vh` }} className="relative w-full">
         <div className="sticky top-0 h-screen w-full flex flex-col justify-center overflow-hidden py-24 sm:py-32">
           <div className="mx-auto max-w-7xl px-6 lg:px-8 w-full">
             
@@ -227,16 +259,16 @@ export function ShowcaseSection() {
                 transition={{ duration: 0.8, delay: 0.3 }}
               >
                 <Link href="/projects" className="inline-block px-8 py-4 bg-foreground text-background font-medium rounded-full hover:bg-primary hover:text-primary-foreground transition-colors duration-300 shadow-lg shadow-black/5">
-                  View All Projects
+                  View All
                 </Link>
               </motion.div>
             </div>
 
             <div className="relative w-full max-w-2xl mx-auto h-[400px]">
-              {featuredProjects.map((project, i) => (
+              {showcaseItems.map((item, i) => (
                 <StackCard 
-                  key={project.title}
-                  project={project}
+                  key={`${item.type}-${item.id || i}`}
+                  item={item}
                   index={i}
                   progress={progress}
                 />
