@@ -12,7 +12,33 @@ interface ProjectSummary {
   links?: { live?: string, repo?: string };
 }
 
-
+function SkeletonStackCard({ index }: { index: number }) {
+  const y = [0, 30, 60][index] || 60;
+  const scale = [1, 0.95, 0.90][index] || 0.90;
+  const opacity = [1, 0.8, 0.6][index] || 0.6;
+  
+  return (
+    <div 
+      style={{
+        transform: `translateY(${y}px) scale(${scale})`,
+        opacity,
+        zIndex: 10 - index,
+        transformOrigin: "top center",
+      }}
+      className="absolute top-0 left-0 w-full flex flex-col justify-between p-8 md:p-12 h-[400px] rounded-3xl bg-background border border-border overflow-hidden shadow-xl"
+    >
+      <div className="z-10 flex justify-between items-start">
+        <div className="w-12 h-12 bg-muted/50 border border-border rounded-full animate-pulse"></div>
+        <div className="w-10 h-10 border border-border rounded-full bg-muted/50 animate-pulse"></div>
+      </div>
+      <div className="z-10 w-full">
+        <div className="h-8 w-2/3 bg-muted/50 rounded mb-6 animate-pulse"></div>
+        <div className="h-4 w-full bg-muted/50 rounded mb-2 animate-pulse"></div>
+        <div className="h-4 w-4/5 bg-muted/50 rounded animate-pulse"></div>
+      </div>
+    </div>
+  )
+}
 
 function StackCard({ 
   project, 
@@ -102,7 +128,63 @@ export function ShowcaseSection() {
 
   const progress = useTransform(scrollYProgress, [0, 1], [0, Math.max(featuredProjects.length - 1, 0)]);
 
-  if (featuredProjects.length === 0) return null;
+  if (featuredProjects.length === 0) {
+    return (
+      <section id="projects" className="bg-background/50 text-foreground border-t border-border/50">
+        <div className="relative w-full py-24 sm:py-32 overflow-hidden">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8 w-full">
+            
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 mb-16">
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-100px" }}
+                variants={fadeUpContainer}
+                className="max-w-2xl"
+              >
+                <motion.h2 
+                  variants={fadeUpItem}
+                  className="text-sm font-semibold leading-7 text-primary uppercase tracking-widest mb-2"
+                >
+                  What We Build
+                </motion.h2>
+                <motion.p 
+                  variants={fadeUpItem}
+                  className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl mb-6 text-foreground"
+                >
+                  Projects & Guides
+                </motion.p>
+                <motion.p 
+                  variants={fadeUpItem}
+                  className="text-lg leading-relaxed text-muted-foreground max-w-xl"
+                >
+                  Small and useful software projects built and shared openly alongside practical guides for learning and working with software.
+                </motion.p>
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, x: 20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8, delay: 0.3 }}
+              >
+                <Link href="/projects" className="inline-block px-8 py-4 bg-foreground text-background font-medium rounded-full hover:bg-primary hover:text-primary-foreground transition-colors duration-300 shadow-lg shadow-black/5">
+                  View All Projects
+                </Link>
+              </motion.div>
+            </div>
+
+            <div className="relative w-full max-w-2xl mx-auto h-[460px]">
+              {[0, 1, 2].map((i) => (
+                <SkeletonStackCard key={i} index={i} />
+              ))}
+            </div>
+
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section id="projects" className="bg-background/50 text-foreground border-t border-border/50">

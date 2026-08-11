@@ -14,6 +14,24 @@ interface ProjectSummary {
   links?: { live?: string, repo?: string };
 }
 
+function ProjectCardSkeleton() {
+  return (
+    <div className="group block p-8 rounded-3xl bg-background/40 backdrop-blur-md border border-border">
+      <div className="flex flex-col h-full justify-between">
+        <div>
+          <div className="h-8 w-1/2 bg-muted/50 rounded mb-4 animate-pulse"></div>
+          <div className="h-4 w-full bg-muted/50 rounded mb-2 animate-pulse"></div>
+          <div className="h-4 w-5/6 bg-muted/50 rounded mb-8 animate-pulse"></div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-6 w-16 bg-muted/50 rounded-full animate-pulse"></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 
 export default function ProjectsPage() {
@@ -48,33 +66,41 @@ export default function ProjectsPage() {
           animate="visible"
           className="grid grid-cols-1 md:grid-cols-2 gap-8"
         >
-          {allProjects.map((project, idx) => (
-            <motion.a
-              href={project.links?.live || project.links?.repo || "#"}
-              target="_blank"
-              key={idx}
-              variants={fadeUpItem}
-              className="group block p-8 rounded-3xl bg-background/40 backdrop-blur-md border border-border hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500"
-            >
-              <div className="flex flex-col h-full justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold mb-4 group-hover:text-primary transition-colors duration-300">
-                    {project.title}
-                  </h2>
-                  <p className="text-muted-foreground leading-relaxed mb-8">
-                    {project.shortDesc}
-                  </p>
+          {allProjects.length > 0 ? (
+            allProjects.map((project, idx) => (
+              <motion.a
+                href={project.links?.live || project.links?.repo || "#"}
+                target="_blank"
+                key={idx}
+                variants={fadeUpItem}
+                className="group block p-8 rounded-3xl bg-background/40 backdrop-blur-md border border-border hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500"
+              >
+                <div className="flex flex-col h-full justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold mb-4 group-hover:text-primary transition-colors duration-300">
+                      {project.title}
+                    </h2>
+                    <p className="text-muted-foreground leading-relaxed mb-8">
+                      {project.shortDesc}
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {(project.techStack || []).map((t) => (
+                      <span key={t} className="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-background border border-border rounded-full text-muted-foreground group-hover:border-primary/40 group-hover:text-primary transition-colors duration-300">
+                        {t}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  {(project.techStack || []).map((t) => (
-                    <span key={t} className="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-background border border-border rounded-full text-muted-foreground group-hover:border-primary/40 group-hover:text-primary transition-colors duration-300">
-                      {t}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </motion.a>
-          ))}
+              </motion.a>
+            ))
+          ) : (
+            [0, 1, 2, 3].map((idx) => (
+              <motion.div key={idx} variants={fadeUpItem}>
+                <ProjectCardSkeleton />
+              </motion.div>
+            ))
+          )}
         </motion.div>
         
         <div className="mt-24 flex justify-center">
