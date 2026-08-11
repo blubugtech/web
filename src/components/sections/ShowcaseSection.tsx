@@ -131,7 +131,7 @@ export function ShowcaseSection() {
   if (featuredProjects.length === 0) {
     return (
       <section id="projects" className="bg-background/50 text-foreground border-t border-border/50">
-        <div className="relative w-full py-24 sm:py-32 overflow-hidden">
+        <div ref={containerRef} className="relative w-full py-24 sm:py-32 overflow-hidden">
           <div className="mx-auto max-w-7xl px-6 lg:px-8 w-full">
             
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 mb-16">
