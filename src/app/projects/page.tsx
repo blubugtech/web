@@ -8,9 +8,14 @@ import Link from "next/link";
 import { apiClient } from "@/lib/axios";
 
 interface ProjectSummary {
+  id: string;
   title: string;
   shortDesc: string;
+  type: string;
   techStack?: string[];
+  tags?: string[];
+  thumbnailUrl?: string;
+  isFeatured?: boolean;
   links?: { live?: string, repo?: string };
 }
 
@@ -71,12 +76,26 @@ export default function ProjectsPage() {
               <motion.a
                 href={project.links?.live || project.links?.repo || "#"}
                 target="_blank"
-                key={idx}
+                key={project.id || idx}
                 variants={fadeUpItem}
-                className="group block p-8 rounded-3xl bg-background/40 backdrop-blur-md border border-border hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500"
+                className="group block p-8 rounded-3xl bg-background/40 backdrop-blur-md border border-border hover:border-primary hover:shadow-2xl hover:shadow-primary/10 transition-all duration-500 overflow-hidden relative"
               >
-                <div className="flex flex-col h-full justify-between">
+                {project.isFeatured && (
+                  <div className="absolute top-0 right-0 bg-primary text-primary-foreground text-xs font-bold px-3 py-1 rounded-bl-lg">
+                    Featured
+                  </div>
+                )}
+                <div className="flex flex-col h-full justify-between relative z-10">
                   <div>
+                    {project.thumbnailUrl && (
+                      <div className="mb-6 rounded-xl overflow-hidden aspect-video bg-muted/20 border border-border/50">
+                        <img 
+                          src={project.thumbnailUrl} 
+                          alt={project.title} 
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                        />
+                      </div>
+                    )}
                     <h2 className="text-2xl font-bold mb-4 group-hover:text-primary transition-colors duration-300">
                       {project.title}
                     </h2>
@@ -84,12 +103,14 @@ export default function ProjectsPage() {
                       {project.shortDesc}
                     </p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {(project.techStack || []).map((t) => (
-                      <span key={t} className="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-background border border-border rounded-full text-muted-foreground group-hover:border-primary/40 group-hover:text-primary transition-colors duration-300">
-                        {t}
-                      </span>
-                    ))}
+                  <div className="flex flex-col gap-4">
+                    <div className="flex flex-wrap gap-2">
+                      {(project.tags || []).map((t) => (
+                        <span key={t} className="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-background border border-border rounded-full text-muted-foreground group-hover:border-primary/40 group-hover:text-primary transition-colors duration-300">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </motion.a>
