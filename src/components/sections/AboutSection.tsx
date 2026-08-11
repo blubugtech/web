@@ -4,11 +4,12 @@ import { motion } from "framer-motion";
 
 const statements = [
   "We build it.",
-  "We understand it.",
-  "We document it.",
+  "We debug it.",
   "We deploy it.",
-  "We maintain it.",
-  "We enhance it.",
+  "We secure it.",
+  "We open-source it.",
+  "We iterate on it.",
+  "We scale it.",
 ];
 
 export function AboutSection() {
